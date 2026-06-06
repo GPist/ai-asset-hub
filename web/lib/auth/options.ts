@@ -3,7 +3,10 @@
 
 import type { NextAuthOptions } from "next-auth";
 
+// Internal URL: server-side API + token exchange (container network in Docker).
 const GITEA_URL = process.env.GITEA_URL ?? "http://localhost:3001";
+// Public URL: browser-facing authorize redirect. Falls back to internal.
+const GITEA_PUBLIC_URL = process.env.GITEA_PUBLIC_URL ?? GITEA_URL;
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,9 +15,11 @@ export const authOptions: NextAuthOptions = {
       name: "Sign in",
       type: "oauth",
       authorization: {
-        url: `${GITEA_URL}/login/oauth/authorize`,
+        // Browser is redirected here — must be reachable from the user's browser
+        url: `${GITEA_PUBLIC_URL}/login/oauth/authorize`,
         params: { scope: "openid profile email" },
       },
+      // Token exchange + userinfo happen server-side — use the internal URL
       token: `${GITEA_URL}/login/oauth/access_token`,
       userinfo: `${GITEA_URL}/api/v1/user`,
       clientId: process.env.OIDC_CLIENT_ID ?? "ai-asset-hub-web",

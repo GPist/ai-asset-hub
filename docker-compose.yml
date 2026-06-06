@@ -25,7 +25,7 @@ services:
     environment:
       # Instance
       GITEA__DEFAULT__APP_NAME: "AI Asset Hub"
-      GITEA__server__ROOT_URL: ${GITEA_URL:-http://localhost:3001}
+      GITEA__server__ROOT_URL: ${GITEA_PUBLIC_URL:-http://localhost:3001}
       GITEA__server__HTTP_PORT: "3001"
       GITEA__server__DOMAIN: ${GITEA_DOMAIN:-localhost}
 
@@ -104,7 +104,10 @@ services:
       gitea:
         condition: service_healthy
     environment:
-      GITEA_URL: ${GITEA_URL:-http://gitea:3001}
+      # Internal URL for server-side API calls (container network)
+      GITEA_URL: http://gitea:3001
+      # Public URL for browser-facing OIDC redirect + git source links
+      GITEA_PUBLIC_URL: ${GITEA_PUBLIC_URL:-http://localhost:3001}
       GITEA_ADMIN_TOKEN: ${GITEA_ADMIN_TOKEN}
       HUB_ORG: ${HUB_ORG:-assets}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
@@ -112,7 +115,6 @@ services:
       # OIDC client registered in Gitea by bootstrap
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-ai-asset-hub-web}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
-      OIDC_ISSUER: ${OIDC_ISSUER:-${GITEA_URL:-http://gitea:3001}}
       CATALOG_DB: /data/catalog.db
     ports:
       - "3000:3000"

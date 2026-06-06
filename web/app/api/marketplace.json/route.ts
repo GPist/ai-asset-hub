@@ -8,7 +8,9 @@ import { NextResponse } from "next/server";
 import { listAssets } from "@/lib/catalog";
 
 const HUB_ORG = process.env.HUB_ORG ?? "assets";
-const GITEA_URL = process.env.GITEA_URL ?? "http://localhost:3001";
+// Public URL so the git source link works in users' browsers / Claude Code
+const GITEA_PUBLIC_URL =
+  process.env.GITEA_PUBLIC_URL ?? process.env.GITEA_URL ?? "http://localhost:3001";
 const NEXTAUTH_URL = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
 
 export async function GET(): Promise<NextResponse> {
@@ -24,7 +26,7 @@ export async function GET(): Promise<NextResponse> {
     category: a.category,
     source: {
       type: "git",
-      url: `${GITEA_URL}/${a.owner}/${a.repo}`,
+      url: `${GITEA_PUBLIC_URL}/${a.owner}/${a.repo}`,
     },
     download: `${NEXTAUTH_URL}/api/install/${a.owner}/${a.repo}/${a.version}.zip`,
     homepage: `${NEXTAUTH_URL}/a/${a.owner}/${a.repo}`,
