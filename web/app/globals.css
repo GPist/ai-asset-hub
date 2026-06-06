@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition-colors;
+  }
+  .btn-primary {
+    @apply btn bg-hub-600 text-white hover:bg-hub-700 disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50;
+  }
+  .btn-danger {
+    @apply btn bg-red-50 text-red-700 border border-red-200 hover:bg-red-100;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+  }
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-skill   { @apply badge bg-blue-100 text-blue-800; }
+  .badge-hook    { @apply badge bg-amber-100 text-amber-800; }
+  .badge-agent   { @apply badge bg-purple-100 text-purple-800; }
+  .badge-prompt  { @apply badge bg-green-100 text-green-800; }
+  .badge-plugin  { @apply badge bg-pink-100 text-pink-800; }
+}
+
+/* diff2html */
+.d2h-wrapper { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.d2h-file-header { background: #f8fafc; border-color: #e2e8f0; }
+.d2h-diff-table  { width: 100%; }

@@ -1,0 +1,6 @@
+FROM alpine:3.19
+RUN apk add --no-cache curl bash jq git
+COPY bootstrap.sh /bootstrap.sh
+COPY seed-asset/ /seed-asset/
+RUN chmod +x /bootstrap.sh
+ENTRYPOINT ["/bootstrap.sh"]

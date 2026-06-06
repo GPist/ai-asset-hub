@@ -1,0 +1,11 @@
+{
+  "name": "pdf-extractor",
+  "title": "PDF Extractor",
+  "type": "skill",
+  "summary": "Extract and summarise tables, figures, and key data from PDF files.",
+  "tags": ["pdf", "data-extraction", "documents"],
+  "category": "Documents",
+  "targets": ["claude-code", "generic"],
+  "entry": "SKILL.md",
+  "version": "1.0.0"
+}
