@@ -61,7 +61,7 @@ export function ProposeEditor({
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
           placeholder="e.g. Added support for multi-page PDFs"
-          className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-hub-500"
+          className="input"
           maxLength={200}
         />
       </div>
