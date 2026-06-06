@@ -113,8 +113,11 @@ services:
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-ai-asset-hub-web}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
       OIDC_ISSUER: ${OIDC_ISSUER:-${GITEA_URL:-http://gitea:3001}}
+      CATALOG_DB: /data/catalog.db
     ports:
       - "3000:3000"
+    volumes:
+      - web-data:/data
 
   # ── Dex: demo OIDC provider (profile=demo only) ──────────────────────────
   dex:
@@ -130,3 +133,4 @@ services:
 volumes:
   postgres-data:
   gitea-data:
+  web-data:
