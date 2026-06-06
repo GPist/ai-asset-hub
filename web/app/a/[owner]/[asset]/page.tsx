@@ -140,6 +140,7 @@ export default async function AssetDetailPage({ params, searchParams }: Props) {
           owner={owner}
           repo={repo}
           currentRef={ref}
+          isSignedIn={!!session}
         />
       </div>
     </div>
