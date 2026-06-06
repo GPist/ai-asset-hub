@@ -14,9 +14,11 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { DiffViewer } from "@/components/DiffViewer";
 import { InstallPanel } from "@/components/InstallPanel";
 import { VersionHistory } from "@/components/VersionHistory";
+import { ProposedBanner } from "@/components/Banner";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/options";
 import { Download, GitPullRequest, GitFork } from "lucide-react";
+import { Suspense } from "react";
 
 interface Props {
   params: Promise<{ owner: string; asset: string }>;
@@ -66,6 +68,9 @@ export default async function AssetDetailPage({ params, searchParams }: Props) {
     <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
       {/* Main column */}
       <div>
+        <Suspense>
+          <ProposedBanner />
+        </Suspense>
         <div className="flex items-start gap-3 mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
