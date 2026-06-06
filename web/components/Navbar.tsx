@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { LogIn, LogOut, ShieldCheck, Layers } from "lucide-react";
+import { LogIn, LogOut, ShieldCheck, Layers, Plus } from "lucide-react";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -20,6 +20,13 @@ export function Navbar() {
 
         {user ? (
           <>
+            <Link
+              href="/new"
+              className="btn-primary text-xs py-1.5"
+            >
+              <Plus size={14} />
+              New asset
+            </Link>
             <Link
               href="/review"
               className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"

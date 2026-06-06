@@ -1,7 +1,9 @@
+/* Third-party CSS must come before @tailwind directives */
+@import "diff2html/bundles/css/diff2html.min.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "diff2html/bundles/css/diff2html.min.css";
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -35,9 +37,14 @@
   .badge-agent   { @apply badge bg-purple-100 text-purple-800; }
   .badge-prompt  { @apply badge bg-green-100 text-green-800; }
   .badge-plugin  { @apply badge bg-pink-100 text-pink-800; }
+  .input {
+    @apply w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white
+           focus:outline-none focus:ring-2 focus:ring-hub-500 focus:border-transparent
+           disabled:opacity-50 disabled:bg-gray-50;
+  }
 }
 
-/* diff2html */
+/* diff2html overrides */
 .d2h-wrapper { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
 .d2h-file-header { background: #f8fafc; border-color: #e2e8f0; }
 .d2h-diff-table  { width: 100%; }
