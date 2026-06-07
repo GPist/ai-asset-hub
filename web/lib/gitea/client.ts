@@ -170,9 +170,10 @@ export async function listCommits(
   ref: string | undefined,
   token: GiteaToken | null
 ): Promise<GiteaCommit[]> {
-  const q = ref ? `?sha=${encodeURIComponent(ref)}` : "";
+  const params = new URLSearchParams({ limit: "30" });
+  if (ref) params.set("sha", ref);
   return giteaFetch<GiteaCommit[]>(
-    `/repos/${owner}/${repo}/commits${q}&limit=30`,
+    `/repos/${owner}/${repo}/commits?${params.toString()}`,
     token
   );
 }

@@ -34,19 +34,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const catalogAsset = getAsset(owner, repo);
   if (!catalogAsset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
 
-  const adminToken = process.env.GITEA_ADMIN_TOKEN ?? null;
   const login =
     (session as typeof session & { user: { login?: string } }).user?.login ??
     session.user?.name ??
     "user";
 
   try {
-    // Get file content at the target ref
-    const oldFile = await getFileContents(owner, repo, catalogAsset.entry, targetRef, adminToken);
+    // Read and write as the session user (consistent auth + attribution)
+    const oldFile = await getFileContents(owner, repo, catalogAsset.entry, targetRef, token);
     const oldContent = decodeBase64(oldFile.content);
 
     // Get current HEAD file SHA (needed to update)
-    const currentFile = await getFileContents(owner, repo, catalogAsset.entry, undefined, adminToken);
+    const currentFile = await getFileContents(owner, repo, catalogAsset.entry, undefined, token);
 
     const branchName = `rollback/${login.replace(/[^a-zA-Z0-9-]/g, "-")}-to-${targetRef.replace(/[^a-zA-Z0-9.-]/g, "-")}-${Date.now()}`;
     const commitMessage = `Roll back ${catalogAsset.entry} to ${targetRef}`;

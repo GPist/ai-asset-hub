@@ -65,8 +65,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     Authorization: `token ${ADMIN_TOKEN}`,
   };
 
+  // Create-or-update a file via the contents API, checking for errors.
+  // GET the current SHA first: new files are POSTed, existing ones are PUT.
+  async function writeFile(repo: string, path: string, content: string, message: string) {
+    const url = `${GITEA_URL}/api/v1/repos/${HUB_ORG}/${repo}/contents/${path}`;
+    const getRes = await fetch(`${url}?ref=main`, { headers });
+    let sha: string | undefined;
+    if (getRes.ok) {
+      sha = ((await getRes.json()) as { sha?: string }).sha;
+    }
+    const res = await fetch(url, {
+      method: sha ? "PUT" : "POST",
+      headers,
+      body: JSON.stringify({ message, content: b64(content), branch: "main", ...(sha ? { sha } : {}) }),
+    });
+    if (!res.ok) throw new GiteaError(res.status, `write ${path}: ${await res.text()}`);
+  }
+
   try {
-    // Create repo in org
+    // Create repo in org. auto_init:true gives it a main branch + first commit
+    // so the contents API below has a base branch to commit against.
     const createRes = await fetch(`${GITEA_URL}/api/v1/orgs/${HUB_ORG}/repos`, {
       method: "POST",
       headers,
@@ -74,7 +92,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         name: repoName,
         description: summary,
         private: false,
-        auto_init: false,
+        auto_init: true,
+        default_branch: "main",
       }),
     });
 
@@ -116,26 +135,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       `Download from [AI Asset Hub](${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/a/${HUB_ORG}/${repoName}).`,
     ].join("\n");
 
-    // Push hub.json (first commit — creates main branch)
-    await fetch(`${GITEA_URL}/api/v1/repos/${HUB_ORG}/${repoName}/contents/hub.json`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ message: "Add hub.json", content: b64(hubJson) }),
-    });
-
-    // Push entry file
-    await fetch(`${GITEA_URL}/api/v1/repos/${HUB_ORG}/${repoName}/contents/${entry}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ message: `Add ${entry}`, content: b64(entryContent) }),
-    });
-
-    // Push README
-    await fetch(`${GITEA_URL}/api/v1/repos/${HUB_ORG}/${repoName}/contents/README.md`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ message: "Add README.md", content: b64(readme) }),
-    });
+    // Push files (hub.json + entry are new → POST; README exists from
+    // auto_init → PUT). writeFile checks .ok and throws on failure.
+    await writeFile(repoName, "hub.json", hubJson, "Add hub.json");
+    await writeFile(repoName, entry, entryContent, `Add ${entry}`);
+    await writeFile(repoName, "README.md", readme, "Update README.md");
 
     // Tag v1.0.0
     const tagsRes = await fetch(`${GITEA_URL}/api/v1/repos/${HUB_ORG}/${repoName}/git/refs/heads/main`, {

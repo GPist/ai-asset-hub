@@ -92,23 +92,31 @@ SAMPLE_REPO="pdf-extractor"
 echo "==> Ensuring sample asset repo '$ORG/$SAMPLE_REPO' ..."
 repo_exists=$(curl -sf $AUTH "$API/repos/$ORG/$SAMPLE_REPO" 2>/dev/null | jq -r '.name' 2>/dev/null || true)
 if [ "$repo_exists" != "$SAMPLE_REPO" ]; then
-  # Create repo under org
+  # Create repo under org with auto_init so a main branch + first commit exist
+  # before the contents API is used (it needs a base branch to commit against).
   curl -sf -X POST "$API/orgs/$ORG/repos" $AUTH \
     -H "Content-Type: application/json" \
-    -d "{\"name\":\"$SAMPLE_REPO\",\"description\":\"Extract and summarise tables from PDF files\",\"private\":false,\"auto_init\":false}" \
+    -d "{\"name\":\"$SAMPLE_REPO\",\"description\":\"Extract and summarise tables from PDF files\",\"private\":false,\"auto_init\":true,\"default_branch\":\"main\"}" \
     > /dev/null
   echo "    Created repo."
 
-  # Push seed files via contents API
+  # Create-or-update a seed file (new files POST, existing README PUT with its sha).
   push_file() {
     local path="$1"
     local src="/seed-asset/$path"
-    local content
+    local content sha method body
     content=$(base64 < "$src" | tr -d '\n')
-    curl -sf -X POST "$API/repos/$ORG/$SAMPLE_REPO/contents/$path" $AUTH \
-      -H "Content-Type: application/json" \
-      -d "{\"message\":\"Initial commit\",\"content\":\"$content\"}" > /dev/null
-    echo "    Pushed $path"
+    sha=$(curl -sf $AUTH "$API/repos/$ORG/$SAMPLE_REPO/contents/$path?ref=main" 2>/dev/null | jq -r '.sha // empty')
+    if [ -n "$sha" ]; then
+      method="PUT"
+      body="{\"message\":\"Seed $path\",\"content\":\"$content\",\"branch\":\"main\",\"sha\":\"$sha\"}"
+    else
+      method="POST"
+      body="{\"message\":\"Seed $path\",\"content\":\"$content\",\"branch\":\"main\"}"
+    fi
+    curl -sf -X "$method" "$API/repos/$ORG/$SAMPLE_REPO/contents/$path" $AUTH \
+      -H "Content-Type: application/json" -d "$body" > /dev/null \
+      && echo "    Pushed $path" || echo "    WARNING: failed to push $path"
   }
   push_file "hub.json"
   push_file "SKILL.md"
