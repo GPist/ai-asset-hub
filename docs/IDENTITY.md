@@ -52,19 +52,34 @@ Run with `--profile demo`. Uses Dex with hardcoded test users. Not for productio
 
 ## User roles
 
-| Gitea org role | Hub capability |
-|---|---|
-| Org owner / `admins` team | Approve & publish, Decline, Ask for changes |
-| Org member | Browse, download, Propose a change, Make your own copy |
-| Anonymous (no account) | Browse and download only |
+Bootstrap creates two teams in the hub org:
 
-Add users to the `admins` team in the Gitea admin panel to grant review permissions.
+| Gitea team | Permission | Hub capability |
+|---|---|---|
+| `admins` | owner | Approve & publish, Decline, Ask for changes (plus everything below) |
+| `contributors` | write (all repos) | Propose a change, Make your own copy, download |
+| (any signed-in user, no team) | — | Browse, download, fork |
+| Anonymous | — | Browse and download only |
+
+**Important:** "Propose a change" creates a branch in the asset's repo, which requires
+**write** access. So a contributor must be a member of the `contributors` team (or
+`admins`). Add OIDC-provisioned users to `contributors` in the Gitea admin panel, or map
+an IdP group to the team via the OIDC source's group claim. Users who are signed in but in
+no team can still browse, download, and **fork** (forking doesn't need write on the source)
+— they just can't open a proposal directly against an org asset until added to a team.
 
 ## Signing
 
-In MVP, every merge commit is signed by the **instance key** (configured via
-`SIGNING_KEY = default` in Gitea). This means: any merge has a cryptographic signature
-proving it was processed by this hub instance.
+**Identity-bound authorship (always on):** every commit and PR is attributed to the
+authenticated user (verified end-to-end — a proposal opened by `alice` shows `alice` as the
+author and PR opener). This is the provenance guarantee the MVP relies on.
 
-Individual user SSH/GPG key signing (the "Verified" badge on individual commits) is
-supported natively by Gitea — users can add their own keys in their profile settings.
+**Cryptographic instance signing (opt-in setup):** `docker-compose.yml` sets
+`[repository.signing] SIGNING_KEY=default, MERGES=always`, but Gitea only actually signs
+merges once a **GPG key exists on the instance**. To enable the green "Verified" badge on
+merges, generate a key inside the Gitea container and point `SIGNING_KEY` at it (see Gitea's
+[signing docs](https://docs.gitea.com/administration/signing)). Without this, merges are
+unsigned but still fully attributed.
+
+**Per-user signing:** users can add their own SSH/GPG key in their Gitea profile to get a
+"Verified" badge on their individual commits.

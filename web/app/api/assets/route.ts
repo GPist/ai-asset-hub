@@ -7,7 +7,7 @@ import { GiteaError } from "@/lib/gitea/client";
 import { reindexRepo } from "@/lib/catalog";
 
 const GITEA_URL = process.env.GITEA_URL ?? "http://localhost:3001";
-const HUB_ORG = process.env.HUB_ORG ?? "assets";
+const HUB_ORG = process.env.HUB_ORG ?? "ai-assets";
 const ADMIN_TOKEN = process.env.GITEA_ADMIN_TOKEN ?? null;
 
 interface CreateAssetBody {
@@ -149,10 +149,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const refs = await tagsRes.json() as Array<{ object?: { sha?: string } }>;
       const sha = refs[0]?.object?.sha;
       if (sha) {
+        // Tag == hub.json version (no "v" prefix) so install/download refs resolve.
         await fetch(`${GITEA_URL}/api/v1/repos/${HUB_ORG}/${repoName}/tags`, {
           method: "POST",
           headers,
-          body: JSON.stringify({ tag_name: "v1.0.0", target: sha, message: "Initial release" }),
+          body: JSON.stringify({ tag_name: "1.0.0", target: sha, message: "Initial release" }),
         });
       }
     }

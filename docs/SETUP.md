@@ -48,8 +48,9 @@ Edit every `changeme_*` value:
 docker compose up -d db gitea
 
 # Wait until Gitea is healthy, then create the FIRST admin (CLI — required;
-# the first admin cannot be created over the API):
-docker compose exec gitea gitea admin user create \
+# the first admin cannot be created over the API). Run as the `git` user —
+# Gitea refuses to run its CLI as root:
+docker compose exec -u git gitea gitea admin user create \
   --admin --username hubadmin --password "$GITEA_ADMIN_PASSWORD" \
   --email admin@example.com --must-change-password=false
 ```

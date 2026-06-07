@@ -50,7 +50,7 @@ services:
       GITEA__service__REQUIRE_SIGNIN_VIEW: "true"
 
       # OAuth2 provider (Gitea acts as OIDC provider for the web app)
-      GITEA__oauth2__ENABLE: "true"
+      GITEA__oauth2__ENABLED: "true"
       GITEA__oauth2__JWT_SECRET: ${GITEA_JWT_SECRET:-changeme_jwt_secret}
 
       # Commit signing: instance signs all merges
@@ -83,11 +83,12 @@ services:
       gitea:
         condition: service_healthy
     environment:
-      GITEA_URL: ${GITEA_URL:-http://gitea:3001}
+      # Internal URL — reach Gitea over the container network, not the host
+      GITEA_URL: http://gitea:3001
       GITEA_ADMIN_USER: ${GITEA_ADMIN_USER:-hubadmin}
       GITEA_ADMIN_PASSWORD: ${GITEA_ADMIN_PASSWORD:-hubadmin_changeme}
       GITEA_ADMIN_EMAIL: ${GITEA_ADMIN_EMAIL:-admin@example.com}
-      HUB_ORG: ${HUB_ORG:-assets}
+      HUB_ORG: ${HUB_ORG:-ai-assets}
       HUB_ADMIN_TEAM: ${HUB_ADMIN_TEAM:-admins}
       WEB_CALLBACK_URL: ${NEXTAUTH_URL:-http://localhost:3000}/api/auth/callback/gitea
     restart: "no"
@@ -107,7 +108,7 @@ services:
       # Public URL for browser-facing OIDC redirect + git source links
       GITEA_PUBLIC_URL: ${GITEA_PUBLIC_URL:-http://localhost:3001}
       GITEA_ADMIN_TOKEN: ${GITEA_ADMIN_TOKEN}
-      HUB_ORG: ${HUB_ORG:-assets}
+      HUB_ORG: ${HUB_ORG:-ai-assets}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-changeme_nextauth_secret}
       # OIDC client registered in Gitea by bootstrap

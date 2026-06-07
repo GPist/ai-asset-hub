@@ -12,7 +12,7 @@ import {
 } from "@/lib/gitea/client";
 
 const DB_PATH = process.env.CATALOG_DB ?? path.join(process.cwd(), ".catalog.db");
-const HUB_ORG = process.env.HUB_ORG ?? "assets";
+const HUB_ORG = process.env.HUB_ORG ?? "ai-assets";
 const ADMIN_TOKEN = process.env.GITEA_ADMIN_TOKEN ?? null;
 
 export interface HubManifest {

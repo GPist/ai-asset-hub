@@ -5,15 +5,21 @@
 // Only includes assets with "claude-code" in their targets array.
 
 import { NextResponse } from "next/server";
-import { listAssets } from "@/lib/catalog";
+import { listAssets, ensureIndexed } from "@/lib/catalog";
 
-const HUB_ORG = process.env.HUB_ORG ?? "assets";
+// Read live from the catalog on every request — without this, Next.js statically
+// prerenders this route at build time (when the catalog is empty) and serves a
+// stale empty list forever.
+export const dynamic = "force-dynamic";
+
+const HUB_ORG = process.env.HUB_ORG ?? "ai-assets";
 // Public URL so the git source link works in users' browsers / Claude Code
 const GITEA_PUBLIC_URL =
   process.env.GITEA_PUBLIC_URL ?? process.env.GITEA_URL ?? "http://localhost:3001";
 const NEXTAUTH_URL = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
 
 export async function GET(): Promise<NextResponse> {
+  await ensureIndexed();
   const assets = listAssets().filter((a) => a.targets.includes("claude-code"));
 
   const plugins = assets.map((a) => ({

@@ -25,7 +25,7 @@ GITEA_JWT_SECRET=$(rnd)
 GITEA_ADMIN_USER=hubadmin
 GITEA_ADMIN_PASSWORD=$(rnd)
 GITEA_ADMIN_EMAIL=admin@example.com
-HUB_ORG=assets
+HUB_ORG=ai-assets
 HUB_ADMIN_TEAM=admins
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=$(rnd)
@@ -54,20 +54,26 @@ done
 echo "    Gitea healthy."
 
 # ── 3a. Create the initial admin user (idempotent) ───────────────────────────
+# Run as the `git` user — Gitea refuses to run its CLI as root.
 echo "==> Ensuring admin user '${GITEA_ADMIN_USER:-hubadmin}'"
-docker compose exec -T gitea gitea admin user create \
-  --admin \
-  --username "${GITEA_ADMIN_USER:-hubadmin}" \
-  --password "${GITEA_ADMIN_PASSWORD:?set GITEA_ADMIN_PASSWORD in .env}" \
-  --email "${GITEA_ADMIN_EMAIL:-admin@example.com}" \
-  --must-change-password=false 2>/dev/null \
-  && echo "    Admin user created." \
-  || echo "    Admin user already exists (ok)."
+if docker compose exec -T -u git gitea gitea admin user list 2>/dev/null \
+     | awk 'NR>1{print $2}' | grep -qx "${GITEA_ADMIN_USER:-hubadmin}"; then
+  echo "    Admin user already exists (ok)."
+else
+  docker compose exec -T -u git gitea gitea admin user create \
+    --admin \
+    --username "${GITEA_ADMIN_USER:-hubadmin}" \
+    --password "${GITEA_ADMIN_PASSWORD:?set GITEA_ADMIN_PASSWORD in .env}" \
+    --email "${GITEA_ADMIN_EMAIL:-admin@example.com}" \
+    --must-change-password=false \
+    && echo "    Admin user created." \
+    || { echo "    ERROR: admin user creation failed."; exit 1; }
+fi
 
 # ── 3b. Generate an admin token if we don't have one ─────────────────────────
 if ! grep -q '^GITEA_ADMIN_TOKEN=.\+' .env; then
   echo "==> Generating Gitea admin access token"
-  TOKEN=$(docker compose exec -T gitea gitea admin user generate-access-token \
+  TOKEN=$(docker compose exec -T -u git gitea gitea admin user generate-access-token \
     --username "${GITEA_ADMIN_USER:-hubadmin}" --raw --scopes all \
     --token-name "hub-admin-$(date +%s)" 2>/dev/null | tail -1 | tr -d '[:space:]')
   if [ -n "$TOKEN" ]; then
