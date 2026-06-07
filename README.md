@@ -51,13 +51,22 @@ The engine is **[Gitea](https://gitea.io) (MIT)**, run headless. The front-end i
 
 ## Getting started
 
+One command (generates secrets, starts Gitea, wires the admin token, seeds a sample asset):
+
 ```bash
-cp .env.example .env
-# Edit .env with your OIDC provider settings
-docker compose --profile demo up
+./scripts/setup.sh --demo
 ```
 
-Visit `http://localhost:3000`. Log in with the demo identity (Dex). The Gitea engine runs at `http://localhost:3001` but you shouldn't need to visit it directly.
+Visit `http://localhost:3000`. Log in with the demo identity (Dex: `alice@example.com` / `password`). The Gitea engine runs at `http://localhost:3001` but you shouldn't need to visit it directly.
+
+> **Note:** Docker must be able to pull `gitea/gitea` and `postgres` from Docker Hub. If pulls hang, see [docs/VERIFICATION.md](docs/VERIFICATION.md#fix-one-time-on-this-machine) (a known Docker Desktop IPv6-DNS issue and its fix).
+
+Manual alternative:
+
+```bash
+cp .env.example .env   # edit with your OIDC provider settings
+docker compose --profile demo up
+```
 
 See [docs/SETUP.md](docs/SETUP.md) for production setup and [docs/IDENTITY.md](docs/IDENTITY.md) for wiring your own OIDC provider.
 
