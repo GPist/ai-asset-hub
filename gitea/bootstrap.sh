@@ -20,18 +20,21 @@ echo "==> Waiting for Gitea at $GITEA ..."
 until curl -sf "$GITEA/api/healthz" > /dev/null; do sleep 2; done
 echo "    Gitea is up."
 
-# ── 1. Ensure admin user exists ──────────────────────────────────────────────
-echo "==> Ensuring admin user '$ADMIN' ..."
-existing=$(curl -sf $AUTH "$API/users/$ADMIN" 2>/dev/null | jq -r '.login' 2>/dev/null || true)
+# ── 1. Verify the admin user exists ──────────────────────────────────────────
+# The FIRST admin must be created via the Gitea CLI (`gitea admin user create`),
+# which scripts/setup.sh does. We can't create it over the API because that
+# itself requires authenticating as an existing admin (chicken-and-egg).
+echo "==> Checking admin user '$ADMIN' ..."
+existing=$(curl -sf $AUTH "$API/user" 2>/dev/null | jq -r '.login' 2>/dev/null || true)
 if [ "$existing" != "$ADMIN" ]; then
-  curl -sf -X POST "$API/admin/users" $AUTH \
-    -H "Content-Type: application/json" \
-    -d "{\"username\":\"$ADMIN\",\"password\":\"$PASS\",\"email\":\"$EMAIL\",\"must_change_password\":false}" \
-    > /dev/null
-  echo "    Created admin user."
-else
-  echo "    Admin user already exists."
+  echo "    ERROR: cannot authenticate as admin '$ADMIN'."
+  echo "    Create it first (or use scripts/setup.sh which does this):"
+  echo "      docker compose exec gitea gitea admin user create \\"
+  echo "        --admin --username $ADMIN --password '<password>' \\"
+  echo "        --email $EMAIL --must-change-password=false"
+  exit 1
 fi
+echo "    Admin '$ADMIN' authenticated."
 
 # ── 2. Create org ────────────────────────────────────────────────────────────
 echo "==> Ensuring org '$ORG' ..."

@@ -5,9 +5,11 @@
 ```bash
 git clone https://github.com/GPist/ai-asset-hub
 cd ai-asset-hub
-cp .env.example .env
-docker compose --profile demo up
+./scripts/setup.sh --demo
 ```
+
+`setup.sh` generates `.env` with random secrets, starts Gitea + Postgres, creates
+the admin user, generates an admin token, and seeds a sample asset.
 
 Visit [http://localhost:3000](http://localhost:3000).
 Log in with any demo user (see below).
@@ -17,6 +19,8 @@ Log in with any demo user (see below).
 - bob@example.com
 
 The sample "PDF Extractor" skill will already be in the catalog.
+
+> If Docker hangs pulling images, see [VERIFICATION.md](VERIFICATION.md#fix-one-time-on-this-machine).
 
 ---
 
@@ -38,7 +42,21 @@ Edit every `changeme_*` value:
 | `GITEA_ADMIN_PASSWORD` | Initial admin password (change after first login) |
 | `NEXTAUTH_SECRET` | NextAuth session secret |
 
-### 2. Start (without demo IdP)
+### 2. Start Gitea, then create the admin user
+
+```bash
+docker compose up -d db gitea
+
+# Wait until Gitea is healthy, then create the FIRST admin (CLI — required;
+# the first admin cannot be created over the API):
+docker compose exec gitea gitea admin user create \
+  --admin --username hubadmin --password "$GITEA_ADMIN_PASSWORD" \
+  --email admin@example.com --must-change-password=false
+```
+
+> `./scripts/setup.sh` does all of this (and the admin token below) automatically.
+
+Then start the rest:
 
 ```bash
 docker compose up -d
